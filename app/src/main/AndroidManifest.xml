@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.buscode.whatsinput" android:versionCode="4" android:versionName="1.0">
+    package="com.buscode.whatsinput" 
+	android:versionCode="4" 
+	android:versionName="1.0">
 
     <uses-sdk
         android:minSdkVersion="7"
-        android:targetSdkVersion="12" />
+        android:targetSdkVersion="21" />
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

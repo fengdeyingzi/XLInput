@@ -1,4 +1,4 @@
-package com.sand.airinput.server;
+package com.buscode.whatsinput.server;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -8,6 +8,7 @@ import android.content.Intent;
 import com.buscode.whatsinput.MainActivity;
 import com.buscode.whatsinput.server.ExHttpConfig;
 import com.buscode.whatsinput.R;
+import android.support.v4.app.NotificationCompat;
 
 public class ServerNotification {
 
@@ -60,37 +61,37 @@ public class ServerNotification {
     public static class Builder {
 
         private Context mContext;
-
-        private Notification mNotification;
+		NotificationCompat.Builder notifyBuilder;
+        //private Notification mNotification;
 
         public Builder(Context context) {
 
             mContext = context;
-            mNotification = new Notification();
+            notifyBuilder = new NotificationCompat.Builder(context);
         }
 
         public Builder setIcon(int icon) {
 
-            mNotification.icon = icon;
+            notifyBuilder.setSmallIcon(icon);
             return this;
         }
         public Builder setTickerText(String text) {
-            mNotification.tickerText = text;
+            notifyBuilder.setTicker(text);
             return this;
         }
 
         public Builder setWhen(long when) {
-            mNotification.when = when;
+            notifyBuilder.setWhen(when);
             return this;
         }
 
         public Builder setContentIntent(PendingIntent contentIntent) {
-            mNotification.contentIntent = contentIntent;
+            notifyBuilder.setContentIntent(contentIntent);
             return this;
         }
 
         public Builder addFlags(int flags) {
-            mNotification.flags |= flags;
+            //mNotification.flags |= flags;
             return this;
         }
 
@@ -105,18 +106,22 @@ public class ServerNotification {
          */
         public Builder setDefaults(int defaults) {
 
-            mNotification.defaults = defaults;
+            //mNotification.defaults = defaults;
+			notifyBuilder.setDefaults(defaults);
             return this;
         }
 
         public Builder setLatestEventInfo(String contentTitle, String contentText, PendingIntent contentIntent) {
 
-            mNotification.setLatestEventInfo(mContext, contentTitle, contentText, contentIntent);
+            //mNotification.setLatestEventInfo(mContext, contentTitle, contentText, contentIntent);
+			notifyBuilder.setContentTitle(contentTitle);
+			notifyBuilder.setContentText(contentText);
+			notifyBuilder.setContentIntent(contentIntent);
             return this;
         }
 
         public Notification build() {
-            return mNotification;
+            return notifyBuilder.build();
         }
     }
 }
