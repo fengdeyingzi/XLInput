@@ -594,7 +594,7 @@ class MsgParser {
         }
 //        logger.debug("onMessage: " + msg);//
         try {
-			service.setInfoText(msg);
+			//service.setInfoText(msg);
 			
             String type = getType(msg);
 //            logger.debug("New Msg: " + type);
