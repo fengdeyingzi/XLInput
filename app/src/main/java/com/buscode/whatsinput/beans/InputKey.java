@@ -25,9 +25,11 @@ public class InputKey extends AbstractMsg {
         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, code));
         sleep(100);
         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, code));
-
         sleep(500);
-
+        if(code == KeyEvent.KEYCODE_DEL)
+		{
+			ic.deleteSurroundingText(1,0);
+		}
         InputChange change = new InputChange();
         change.text = service.getText();
 

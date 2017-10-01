@@ -31,6 +31,10 @@ import android.inputmethodservice.Keyboard;
 import android.widget.LinearLayout;
 import java.util.List;
 import android.view.KeyEvent;
+import java.util.ArrayList;
+import com.buscode.whatsinput.input.InputData;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * User: fanxu
@@ -87,6 +91,20 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
             default:
                 char code = (char) primaryCode;
                 ic.commitText(String.valueOf(code), 1);
+				if(code==' ')
+				{
+					tvAddress.setText(" ");
+					pinyindata = new StringBuffer();
+				}
+				else
+				{
+					pinyindata.append(code);
+				   ArrayList<String> list = input_data.getList(pinyindata.toString());
+				   tvAddress.setText("");
+				   tvAddress.append(pinyindata);
+				for(int i=0;i<list.size();i++)
+				   tvAddress.append(list.get(i));
+				}
         }
 
         /*
@@ -107,6 +125,7 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
     /**
      * 键盘大小写切换
      */
+
     private void changeKey() {
         List<Keyboard.Key> keylist = letterKey.getKeys();
         if (isupper) {//大写切换小写
@@ -166,7 +185,10 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
 		// TODO: Implement this method
 	}
 	
-
+    //预输入
+	private StringBuffer pinyindata;
+	//中文输入字典
+	private InputData input_data;
     //logger
     private Logger logger = Logger.getLogger("WifiInputMethod");
 
@@ -294,6 +316,9 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
 */
     @Override
     public View onCreateInputView() {
+		pinyindata = new StringBuffer();
+	    input_data = new InputData(getAssetsString("GB.txt"));
+			
 		mContent = LayoutInflater.from(this).inflate(R.layout.keyboard, null);
         tvAddress = (TextView) mContent.findViewById(R.id.tvIP);
         tvAddress.setText(ExHttpConfig.getInstance().getLocalAddress());
@@ -305,7 +330,7 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
 		// keyboard被创建后，将调用onCreateInputView函数
         LinearLayout layout = (LinearLayout)mContent.findViewById(R.id.layout_input);
 
-		keyboardView = (KeyboardView)layout.findViewById(R.id.keyboard);
+		keyboardView = (KeyboardView)mContent.findViewById(R.id.keyboard);
 		//键盘
         letterKey = new Keyboard(this, R.xml.qwerty);
         numberKey = new Keyboard(this, R.xml.symbols);
@@ -318,6 +343,22 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
         
         return mContent;
     }
+	
+	//从assets获取文本as
+	public String getAssetsString(String filename)
+	{
+		byte[] data=null;
+		try
+		{
+			InputStream in =  getAssets().open(filename);
+			int len = in.available();
+			data = new byte[len];
+			in.read(data);
+		}
+		catch (IOException e)
+		{}
+		return new String(data);
+	}
 
     private Handler mHandler = new Handler();
 
@@ -472,6 +513,17 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
         }
         return text;
     }
+	
+	public void setInfoText(String text)
+	{
+		this.tvAddress.setText(text);
+	}
+	
+	
+	/*
+	设置输入框文本
+	
+	*/
     public boolean setText(String text) {
         // FIXME: need feedback if the input was lost
         InputConnection conn = getCurrentInputConnection();
@@ -487,6 +539,26 @@ public class WifiInputMethod extends InputMethodService implements KeyboardView.
         conn.endBatchEdit();
         return true;
     }
+	
+	/*
+	输入文本
+	*/
+	public boolean commitText(String text) {
+        // FIXME: need feedback if the input was lost
+        InputConnection conn = getCurrentInputConnection();
+        if (conn == null) {
+//      Debug.d("connection closed");
+            return false;
+        }
+
+        conn.beginBatchEdit();
+        
+        conn.commitText(text, text.length());
+        conn.endBatchEdit();
+        return true;
+    }
+	
+	
     ExtractedTextRequest req = new ExtractedTextRequest();
     {
         req.hintMaxChars = 100000;
@@ -516,19 +588,27 @@ class MsgParser {
     private Logger logger;
 
     public void onMessage(WifiInputMethod service, String msg) {
-
+   ;
         if (service == null || TextUtils.isEmpty(msg)) {
             return;
         }
 //        logger.debug("onMessage: " + msg);//
         try {
+			service.setInfoText(msg);
+			
             String type = getType(msg);
 //            logger.debug("New Msg: " + type);
             Jsoner jsoner = Jsoner.getInstance();
             if (InputEdit.TYPE.equals(type)) {
                 InputEdit ie = jsoner.fromJson(msg, InputEdit.class);
                 ie.onMessage(service);
-            } else if (InputUpdate.TYPE.equals(type)) {
+            }
+			else if(InputCommit.TYPE.equals(type))
+			{
+				InputCommit com = jsoner.fromJson(msg, InputCommit.class);
+				com.onMessage(service);
+			}
+			else if (InputUpdate.TYPE.equals(type)) {
                 InputUpdate iu = jsoner.fromJson(msg, InputUpdate.class);
                 iu.onMessage(service);
             } else if (InputKey.TYPE.equals(type)) {
