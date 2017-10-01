@@ -26,19 +26,162 @@ import com.buscode.whatsinput.server.BackServiceListener;
 import com.buscode.whatsinput.server.ExHttpConfig;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import android.inputmethodservice.KeyboardView;
+import android.inputmethodservice.Keyboard;
+import android.widget.LinearLayout;
+import java.util.List;
+import android.view.KeyEvent;
 
 /**
  * User: fanxu
  * Date: 12-10-26
  */
-public class WifiInputMethod extends InputMethodService {
+public class WifiInputMethod extends InputMethodService implements KeyboardView.OnKeyboardActionListener
+{
+
+	@Override
+	public void onPress(int p1)
+	{
+		// TODO: Implement this method
+	}
+
+	@Override
+	public void onRelease(int p1)
+	{
+		// TODO: Implement this method
+	}
+
+	@Override
+    public void onKey(int primaryCode, int[] keyCodes) {
+        InputConnection ic = getCurrentInputConnection();
+        //playClick(primaryCode);
+
+        switch (primaryCode) {
+            case Keyboard.KEYCODE_DELETE:// 回退
+                ic.deleteSurroundingText(1, 0);
+                break;
+            case Keyboard.KEYCODE_DONE:// 完成
+                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                break;
+            case Keyboard.KEYCODE_MODE_CHANGE:// 数字键盘切换
+                if (isnun) {
+                    isnun = false;
+                    keyboardView.setKeyboard(letterKey);
+                } else {
+                    isnun = true;
+                    keyboardView.setKeyboard(numberKey);
+                }
+                break;
+            case  Keyboard.KEYCODE_SHIFT:// 大小写切换
+                changeKey();
+                keyboardView.setKeyboard(letterKey);
+                break;
+            case 57419:// go left
+                if(ic.getTextBeforeCursor(1,InputConnection.GET_TEXT_WITH_STYLES) != null) {
+                    ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
+                }
+                break;
+            case 57421:// go right
+                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
+                break;
+            default:
+                char code = (char) primaryCode;
+                ic.commitText(String.valueOf(code), 1);
+        }
+
+        /*
+		 switch (primaryCode) {
+		 case Keyboard.KEYCODE_DELETE:
+		 ic.deleteSurroundingText(1, 0);
+		 break;
+		 case Keyboard.KEYCODE_DONE:
+		 ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+		 break;
+		 default:
+		 char code = (char) primaryCode;
+		 ic.commitText(String.valueOf(code), 1);
+		 }*/
+    }
+
+
+    /**
+     * 键盘大小写切换
+     */
+    private void changeKey() {
+        List<Keyboard.Key> keylist = letterKey.getKeys();
+        if (isupper) {//大写切换小写
+            isupper = false;
+            for (Keyboard.Key key : keylist) {
+                if (key.label != null && isword(key.label.toString())) {
+                    key.label = key.label.toString().toLowerCase();
+                    key.codes[0] = key.codes[0] + 32;
+                }
+            }
+        } else {//小写切换大写
+            isupper = true;
+            for (Keyboard.Key key : keylist) {
+                if (key.label != null && isword(key.label.toString())) {
+                    key.label = key.label.toString().toUpperCase();
+                    key.codes[0] = key.codes[0] - 32;
+                }
+            }
+        }
+    }
+
+
+    private boolean isword(String str) {
+        String wordstr = "abcdefghijklmnopqrstuvwxyz";
+        if (wordstr.indexOf(str.toLowerCase()) > -1) {
+            return true;
+        }
+        return false;
+    }
+	@Override
+	public void onText(CharSequence p1)
+	{
+		// TODO: Implement this method
+	}
+
+	@Override
+	public void swipeLeft()
+	{
+		// TODO: Implement this method
+	}
+
+	@Override
+	public void swipeRight()
+	{
+		// TODO: Implement this method
+	}
+
+	@Override
+	public void swipeDown()
+	{
+		// TODO: Implement this method
+	}
+
+	@Override
+	public void swipeUp()
+	{
+		// TODO: Implement this method
+	}
+	
 
     //logger
     private Logger logger = Logger.getLogger("WifiInputMethod");
 
-    private boolean mIsEditing = false;
-    private TextView tvAddress;
+    private boolean mIsEditing = false; 
+    private TextView tvAddress;//WIFI地址
+	
+    private KeyboardView keyboardView; // 对应keyboard.xml中定义的KeyboardView
+    //private Keyboard keyboard;  // 对应qwerty.xml中定义的Keyboard
 
+    private Keyboard letterKey;// 字母键盘
+    private Keyboard numberKey;// 数字键盘
+
+    public boolean isnun = false;// 是否数据键盘
+    public boolean isupper = false;// 是否大写
+	
 
     public boolean isEditing() {
         return mIsEditing;
@@ -145,17 +288,34 @@ public class WifiInputMethod extends InputMethodService {
     private View mContent;
 
     private View ivRestart;
+/*
+创建输入法View
 
+*/
     @Override
     public View onCreateInputView() {
-
-        mContent = LayoutInflater.from(this).inflate(R.layout.wifi_input_method_view, null);
+		mContent = LayoutInflater.from(this).inflate(R.layout.keyboard, null);
         tvAddress = (TextView) mContent.findViewById(R.id.tvIP);
         tvAddress.setText(ExHttpConfig.getInstance().getLocalAddress());
 
         ivRestart = mContent.findViewById(R.id.ivRestart);
         ivRestart.setOnClickListener(mOnRestartClicked);
+		
+		
+		// keyboard被创建后，将调用onCreateInputView函数
+        LinearLayout layout = (LinearLayout)mContent.findViewById(R.id.layout_input);
 
+		keyboardView = (KeyboardView)layout.findViewById(R.id.keyboard);
+		//键盘
+        letterKey = new Keyboard(this, R.xml.qwerty);
+        numberKey = new Keyboard(this, R.xml.symbols);
+        //keyboard = new Keyboard(this, R.xml.symbols);  // 此处使用了qwerty.xml
+        keyboardView.setKeyboard(letterKey);
+        keyboardView.setEnabled(true);
+        keyboardView.setPreviewEnabled(true);
+        keyboardView.setOnKeyboardActionListener(this);
+		
+        
         return mContent;
     }
 

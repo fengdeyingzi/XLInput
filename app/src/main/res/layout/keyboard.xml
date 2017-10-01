@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/layout_input"
+	android:layout_height="wrap_content"
+	android:layout_width="match_parent"
+	android:orientation="vertical">
+
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:gravity="center">
+
+		<RelativeLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:background="#1E5A8D">
+
+			<TextView
+				android:id="@+id/tvIP"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:gravity="left|center"
+				android:textStyle="bold"
+				android:textSize="14sp"
+				android:textColor="#ffffff"
+				android:text="http://192.168.40.73:6688"
+				android:paddingLeft="16dp"/>
+
+			<ImageButton
+				android:id="@+id/ivRestart"
+				android:layout_centerVertical="true"
+				android:layout_width="40dp"
+				android:layout_height="wrap_content"
+				android:src="@drawable/ic_menu_moreoverflow_normal_holo_dark"
+				android:layout_alignParentRight="true"
+				android:background="#9CAFB8"/>
+
+		</RelativeLayout>
+
+	</LinearLayout>
+
+	<android.inputmethodservice.KeyboardView
+		android:id="@+id/keyboard"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:keyPreviewLayout="@layout/preview"/>
+
+</LinearLayout>
+
